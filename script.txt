@@ -1,0 +1,52 @@
+Format:
+Delay (in s) & Texte
+A comment line starts with the character #.
+
+The script begins with the line '# begin' or at the start of the file if it's not present,
+and ends with the line '# end' or at the end of the file if this line is not present.
+
+If the delay of a line is not specified, it takes the default value of 5 (5 seconds). 
+This value can be modified by adding a line 'DefaultDelay=...' 
+at the beginning or before the start of the script.
+
+In addition to the currently read line, the display includes the 3 previous lines and the 7 following lines.
+These line numbers can be modified using 'NbLineBefore=...' and 'NbLineAfter=...'
+
+Note: The names of variables and the keywords 'begin' and 'end' are case-insensitive 
+(both uppercase and lowercase are accepted). They can even contain extra spaces.
+
+DefaultDelay=7
+NbLineBefore=2
+NbLineAfter=8
+
+# BEGIN
+
+# Presentation
+3 & Hi, I hope you're fine.
+8 & My name is abcdTux and I will present my program 'promptime' to you.
+7 & 'promptime' is an html page that allows you to scroll through text with timestamps.
+
+# Description
+4 & You create a file with 1 sentence per line.
+6 & You indicate in front of each line the number of seconds needed to read it.
+6 & You open promptime.html in your favorite browser.
+4 & You select the file containing your text.
+3 & You click start and that's it.
+
+# Interface
+6 & You have a stop button to stop. Press start to start again.
+10 & You can return to the previous sentence \n or jump to the next one with the 'previous' and 'next' buttons.
+5 & The 'begin' button allows you to return to the beginning of the script.
+
+# Usage
+4 & Look at the example file to understand how it works.
+14 & If you do not wish to enter playback times, increase the default using 'DefaultDelay' \n and click 'Next' as soon as you have finished the current playback.
+5 & Also notice that the last comment of the file is displayed.
+
+# Development
+5 & You can change the style of the page directly in the html file.
+8 & Don't hesitate to make suggestions for simple developments \n (I'm new to JavaScript).
+
+# end
+
+

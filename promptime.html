@@ -1,0 +1,230 @@
+<!DOCTYPE html> 
+<html lang="en">   
+	<head>     
+		<meta charset="utf-8">     
+		<title>promptime</title>     
+
+		<style type= "text/css"> 
+			#alreadyRead { 
+				color:blue; 
+				background-color: white; 
+				font-weight:bold;
+				font-size:x-large;
+				text-align:center;
+			} 
+			#lastComment { 
+				color:black; 
+				background-color: bisque; 
+				font-weight:bold;
+				font-size:x-large;
+				text-align:left;
+			} 
+			#inProgress { 
+				color:red; 
+				background-color: azure; 
+				font-weight:bold;
+				font-size:xx-large;
+				text-align:center;
+			} 
+			#timer { 
+				color:black; 
+				background-color: azure; 
+				font-weight:bold;
+				font-size:xx-large;
+				text-align:center;
+			} 
+			#unread { 
+				color:blue; 
+				background-color: white; 
+				font-weight:bold;
+				font-size:x-large;
+				text-align:center;
+			} 
+		</style>
+
+		<script>
+			let DefaultDelay = 5;
+			let nbLineBefore = 2;
+			let nbLineAfter = 8;
+			let sep = "&";
+
+			let texts = [];
+			let delays= [];
+			let comments = [];
+			let position = 0;
+			let timerId = 0;
+
+			const CR = String.fromCharCode(13);
+			const PUCE = String.fromCharCode(8226);
+
+			function nextSeconde() {
+				timer = document.getElementById("timer");
+				valueTimer = parseInt(timer.textContent);
+				if (! isNaN(valueTimer)) {
+					valueTimer = valueTimer-1;
+					if (valueTimer == 0) {
+						incPosition()
+					} else {
+						timer.innerText = valueTimer;
+					}
+				}
+			}
+
+			function lineNum(t,n) {
+				if (n<0 || n>=texts.length) {
+					return PUCE + "\n";
+				} else {
+					return t[n]+"\n";
+				}
+			}
+
+			function print(numLine) {
+				document.getElementById("alreadyRead").innerText = ""
+				for (i=numLine-nbLineBefore; i<numLine; i++) {
+					document.getElementById("alreadyRead").innerText += lineNum(texts,i);
+				}
+
+				document.getElementById("lastComment").innerText = lineNum(comments,numLine);;    
+				document.getElementById("inProgress").innerText = lineNum(texts,numLine);    
+				document.getElementById("timer").innerText = lineNum(delays,numLine);   
+
+				document.getElementById("unread").innerText = ""
+				for (i=numLine+1; i<numLine+1+nbLineAfter; i++) {
+					document.getElementById("unread").innerText += lineNum(texts,i);
+				}
+			}
+
+			function run() {
+				timerId = setInterval(nextSeconde, 1000);
+			}
+
+			function stop() {
+				clearInterval(timerId);
+			}
+
+			function resetPosition() {
+				position = 0;
+				print(position);
+			}
+
+			function decPosition() {
+				position--;
+				if (position<0) {
+					position = 0;
+				}
+				print(position);
+			}
+
+			function incPosition() {
+				position++;
+				if (position>=texts.length) {
+					position = texts.length;
+					stop();
+				} 
+				print(position);
+			}
+
+			function generation(index, str) {
+				texts[index] = PUCE + " " + str.trim().replace(/\\n/g, CR);
+			}
+
+			function showSelectedFile(input){     
+				let fileReader = new FileReader();    
+				let comment = false;
+				fileReader.readAsText(input.files[0]); 
+				fileReader.onload = function() {        
+					texts = fileReader.result.split("\n");
+					let debut = 0;
+					let fin = texts.length;
+						for (var i = 0; i < fin; i++) {
+							value = texts[i].replace(/\s/g,'').toUpperCase()
+							switch(value.substr(0,12)) {
+								case "":
+									texts.splice(i,1);
+									i = i-1;
+									break;
+								case "DEFAULTDELAY" : 
+									DefaultDelay = parseInt(value.substr(13));
+									texts.splice(i,1);
+									i = i-1;
+									break;
+								case "NBLINEBEFORE" : 
+									nbLineBefore = parseInt(value.substr(13));
+									texts.splice(i,1);
+									i = i-1;
+									break;
+								case "NBLINEAFTER=" : 
+									nbLineAfter = parseInt(value.substr(12));
+									texts.splice(i,1);
+									i = i-1;
+									break;
+								case "#BEGIN":
+									debut = i;
+									break;
+								case "#END":
+									fin = i;
+									break;
+								default:
+									if (value.substr(0,1) == "#") {
+										lastComment = texts[i];
+										texts.splice(i,1);
+										i = i-1;
+									} else {
+										comments[i] = lastComment; 
+										delayText = texts[i].split(sep);
+										if (delayText.length == 2 && /^\d+$/.test(delayText[0].trim())) {
+											delays[i] = parseInt(delayText[0].trim());
+											generation(i, delayText[1]);
+										} else {
+											delays[i] = DefaultDelay;
+											generation(i, texts[i]);
+										}
+									}
+						}
+					}
+					texts.splice(fin);
+					texts.splice(0,debut+1);
+					comments.splice(fin);
+					comments.splice(0,debut+1);
+					delays.splice(fin);
+					delays.splice(0,debut+1);
+
+					print(position);
+				}; 
+			};
+		</script>   
+	</head>   
+	<body>     
+
+		<div class="grid-item" id="input">
+			<label for="scriptime">Choose your script:</label>
+			<input type="file" id="scriptime" name="scriptime" onChange='showSelectedFile(this)'>
+			<HR>
+		</div>
+		<div align="center">
+			<table width="600px">
+				<tr>
+					<td width="30%" align="center">
+						<button type="button" onClick='run()'>Start</button> 
+						<button type="button" onClick='stop()'>Stop</button> 
+						<button type="button" onClick='resetPosition();'>Begin</button> 
+					</td>
+					<td width="40%" align="center">
+						<button type="button" onClick='decPosition();'>Previous</button> 
+						<button type="button" onClick='incPosition();'>Next</button> 
+					</td>
+				</tr>
+			</table>
+			<HR>
+		</div>
+
+		<div id="alreadyRead">Alreaddy<br>Read</div>
+		<HR>
+		<div id="lastComment"># Last Comment</div>
+		<div id="inProgress">In progress</div>
+		<div id="timer">Timer</div>
+		<HR>
+		<div id="unread">Unread<br>Unread<br>Unread<br>...</div>
+
+	</body> 
+</html>
